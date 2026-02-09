@@ -41,9 +41,9 @@ def get_item(key):
     time.sleep(0.02)
     if doc:
         if CACHE_TTL <= 0:
-        return doc["value"]  # cache disabled
-    redis_client.setex(key, CACHE_TTL, doc["value"])
-    return doc["value"]
+            return doc["value"]  # cache disabled
+        redis_client.setex(key, CACHE_TTL, doc["value"])
+        return doc["value"]
 
 while True:
     key = str(random.randint(0, 9999))
