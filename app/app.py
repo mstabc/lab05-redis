@@ -30,10 +30,7 @@ seed_data()
 stats = {"hits": 0, "misses": 0, "db": 0}
 
 def get_item(key):
-    try:
-        cached = redis_client.get(key)
-    except Exception:
-        cached = None
+    cached = redis_client.get(key)
     if cached:
         stats["hits"] += 1
         return cached
@@ -43,11 +40,9 @@ def get_item(key):
     doc = get_from_db(int(key))
     time.sleep(0.02)
     if doc:
-        if CACHE_TTL > 0:
-            try:
-                redis_client.setex(key, CACHE_TTL, doc["value"])
-            except Exception:
-                pass  # fail open on cache write
+        if CACHE_TTL <= 0:
+            return doc["value"]  # cache disabled
+        redis_client.setex(key, CACHE_TTL, doc["value"])
         return doc["value"]
 
 while True:
