@@ -32,7 +32,12 @@ services:
     volumes:
       - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
     command: >
-      sh -c "sleep 50 && redis-sentinel /usr/local/etc/redis/sentinel.conf"
+      sh -c "
+        until redis-cli -h redis-master -p 6379 ping; do
+          sleep 2;
+        done &&
+        redis-sentinel /usr/local/etc/redis/sentinel.conf
+      "
 
   mongodb:
     image: mongo:7
