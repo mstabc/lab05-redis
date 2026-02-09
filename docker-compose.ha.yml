@@ -33,11 +33,13 @@ services:
       - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
     command: >
       sh -c "
-        until redis-cli -h redis-master -p 6379 ping; do
+        until getent hosts redis-master >/dev/null 2>&1 &&
+              redis-cli -h redis-master -p 6379 ping; do
           sleep 2;
         done &&
         redis-sentinel /usr/local/etc/redis/sentinel.conf
       "
+
 
   mongodb:
     image: mongo:7
