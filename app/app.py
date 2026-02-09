@@ -44,8 +44,10 @@ def get_item(key):
     time.sleep(0.02)
     if doc:
         if CACHE_TTL <= 0:
-            return doc["value"]  # cache disabled
-        redis_client.setex(key, CACHE_TTL, doc["value"])
+            try:
+                redis_client.setex(key, CACHE_TTL, doc["value"])
+            except Exception:
+                pass  # fail open on cache write
         return doc["value"]
 
 while True:
