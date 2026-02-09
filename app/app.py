@@ -14,15 +14,26 @@ def get_redis_client():
               int(os.getenv("REDIS_SENTINEL_PORT")))],
             socket_timeout=0.5
         )
+
+        # WAIT until Sentinel knows the master
+        while True:
+            try:
+                sentinel.discover_master(os.getenv("REDIS_MASTER_NAME"))
+                break
+            except Exception:
+                time.sleep(1)
+
         return sentinel.master_for(
             os.getenv("REDIS_MASTER_NAME"),
             decode_responses=True
         )
+
     return redis.Redis(
         host=os.getenv("REDIS_HOST"),
         port=int(os.getenv("REDIS_PORT")),
         decode_responses=True
     )
+
 
 redis_client = get_redis_client()
 seed_data()
