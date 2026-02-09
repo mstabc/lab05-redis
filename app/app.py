@@ -5,7 +5,7 @@ import redis
 from db import seed_data, get_from_db
 from redis.sentinel import Sentinel
 
-CACHE_TTL = int(os.getenv("CACHE_TTL", 10))
+CACHE_TTL = int(os.getenv("CACHE_TTL") or 10)
 
 def get_redis_client():
     if "REDIS_SENTINEL_HOST" in os.environ:
