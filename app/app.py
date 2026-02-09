@@ -30,7 +30,10 @@ seed_data()
 stats = {"hits": 0, "misses": 0, "db": 0}
 
 def get_item(key):
-    cached = redis_client.get(key)
+    try:
+        cached = redis_client.get(key)
+    except Exception:
+        cached = None
     if cached:
         stats["hits"] += 1
         return cached
