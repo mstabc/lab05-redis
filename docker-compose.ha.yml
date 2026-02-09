@@ -33,11 +33,10 @@ services:
       - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
     command: >
       sh -c "
-        until getent hosts redis-master >/dev/null 2>&1 &&
-              redis-cli -h redis-master -p 6379 ping; do
+        until redis-cli -h redis-master -p 6379 ping | grep -q PONG; do
           sleep 2;
         done &&
-        redis-sentinel /usr/local/etc/redis/sentinel.conf
+        exec redis-sentinel /usr/local/etc/redis/sentinel.conf
       "
 
 
