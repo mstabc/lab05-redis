@@ -40,7 +40,8 @@ def get_item(key):
     doc = get_from_db(int(key))
     time.sleep(0.02)
     if doc:
-        redis_client.setex(key, CACHE_TTL, doc["value"])
+        if CACHE_TTL > 0:
+            redis_client.setex(key, CACHE_TTL, doc["value"])
         return doc["value"]
 
 while True:
