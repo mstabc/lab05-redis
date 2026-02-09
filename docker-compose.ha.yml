@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  redis-master:
+    image: redis:7
+    container_name: redis-master
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/redis-master.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+  redis-replica:
+    image: redis:7
+    container_name: redis-replica
+    depends_on:
+      - redis-master
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redis/redis-replica.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+  sentinel:
+    image: redis:7
+    container_name: redis-sentinel
+    depends_on:
+      - redis-master
+      - redis-replica
+    ports:
+      - "26379:26379"
+    volumes:
+      - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    command: ["redis-sentinel", "/usr/local/etc/redis/sentinel.conf"]
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+
+  app:
+    build: ./app
+    container_name: app
+    depends_on:
+      - sentinel
+      - mongodb
+    environment:
+      - REDIS_SENTINEL_HOST=sentinel
+      - REDIS_SENTINEL_PORT=26379
+      - REDIS_MASTER_NAME=mymaster
+      - MONGO_URI=mongodb://mongodb:27017
+      - CACHE_TTL=10
