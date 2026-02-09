@@ -26,4 +26,5 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - MONGO_URI=mongodb://mongodb:27017
-      - CACHE_TTL=10
+      - CACHE_TTL=${CACHE_TTL}
+      - PYTHONUNBUFFERED=1
