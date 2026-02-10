@@ -31,7 +31,7 @@ services:
     command: >
       sh -c "
         until redis-cli -h redis-master -p 6379 ping | grep -q PONG; do
-          sleep 2;
+          sleep 10;
         done &&
         exec redis-server /usr/local/etc/redis/sentinel.conf --sentinel
       "
@@ -43,7 +43,6 @@ services:
 
   app:
     build: ./app
-    container_name: app
     depends_on:
       - sentinel
       - mongodb
