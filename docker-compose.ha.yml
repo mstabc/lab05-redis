@@ -3,8 +3,6 @@ version: "3.9"
 services:
   redis-master:
     image: redis:7
-    ports:
-      - "6379:6379"
     volumes:
       - ./redis/redis-master.conf:/usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
@@ -13,8 +11,6 @@ services:
     image: redis:7
     depends_on:
       - redis-master
-    ports:
-      - "6380:6379"
     volumes:
       - ./redis/redis-replica.conf:/usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
