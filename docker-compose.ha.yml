@@ -3,7 +3,6 @@ version: "3.9"
 services:
   redis-master:
     image: redis:7
-    container_name: redis-master
     ports:
       - "6379:6379"
     volumes:
@@ -12,7 +11,6 @@ services:
 
   redis-replica:
     image: redis:7
-    container_name: redis-replica
     depends_on:
       - redis-master
     ports:
@@ -23,26 +21,23 @@ services:
 
   sentinel:
     image: redis:7
-    container_name: redis-sentinel
     depends_on:
       - redis-master
       - redis-replica
     ports:
       - "26379:26379"
     volumes:
-      - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - ./redis:/usr/local/etc/redis
     command: >
       sh -c "
         until redis-cli -h redis-master -p 6379 ping | grep -q PONG; do
           sleep 2;
         done &&
-        exec redis-sentinel /usr/local/etc/redis/sentinel.conf
+        exec redis-server /usr/local/etc/redis/sentinel.conf --sentinel
       "
-
 
   mongodb:
     image: mongo:7
-    container_name: mongodb
     ports:
       - "27017:27017"
 
