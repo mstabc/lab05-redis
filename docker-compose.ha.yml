@@ -1,39 +1,59 @@
-version: "3.9"
-
 services:
   redis-master:
     image: redis:7
+    networks:
+      redis-net:
+        ipv4_address: 172.25.0.10
     volumes:
       - ./redis/redis-master.conf:/usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   redis-replica:
     image: redis:7
     depends_on:
       - redis-master
+    networks:
+      redis-net:
+        ipv4_address: 172.25.0.11
     volumes:
       - ./redis/redis-replica.conf:/usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   sentinel:
     image: redis:7
     depends_on:
       - redis-master
       - redis-replica
+    networks:
+      redis-net:
+        ipv4_address: 172.25.0.20
     ports:
       - "26379:26379"
     volumes:
-      - ./redis:/usr/local/etc/redis
+      - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel-init.conf:ro
+      - sentinel-data:/data
     command: >
       sh -c "
-        until redis-cli -h redis-master -p 6379 ping | grep -q PONG; do
-          sleep 10;
+        cp /usr/local/etc/redis/sentinel-init.conf /data/sentinel.conf &&
+        until redis-cli -h 172.25.0.10 -p 6379 ping | grep -q PONG; do
+          sleep 2;
         done &&
-        exec redis-server /usr/local/etc/redis/sentinel.conf --sentinel
+        sleep 3 &&
+        exec redis-server /data/sentinel.conf --sentinel
       "
 
   mongodb:
     image: mongo:7
+    networks:
+      - redis-net
     ports:
       - "27017:27017"
 
@@ -42,6 +62,8 @@ services:
     depends_on:
       - sentinel
       - mongodb
+    networks:
+      - redis-net
     environment:
       - REDIS_SENTINEL_HOST=sentinel
       - REDIS_SENTINEL_PORT=26379
@@ -50,3 +72,12 @@ services:
       - CACHE_TTL=${CACHE_TTL}
       - PYTHONUNBUFFERED=1
 
+networks:
+  redis-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  sentinel-data:
